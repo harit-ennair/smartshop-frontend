@@ -1,37 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProducts, deleteProduct } from "../../services/products";
+import { getClients } from "../../services/clients";
 
-export default function ProductsList() {
+export default function ClientsList() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProducts();
+    loadClients();
   }, []);
 
-  async function loadProducts() {
+  async function loadClients() {
     try {
       setLoading(true);
-      const response = await getProducts();
-      setProducts(response.data.data || response.data); 
+      const response = await getClients();
+      setClients(response.data.data || response.data); 
     } catch (error) {
-      console.error("Erreur chargement produits:", error);
+      console.error("Erreur chargement clients:", error);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handleDelete(id, nom) {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${nom}" ?`)) {
-      try {
-        await deleteProduct(id);
-        loadProducts();
-      } catch (error) {
-        console.error("Erreur suppression produit:", error);
-        alert("Erreur lors de la suppression du produit");
-      }
     }
   }
 
@@ -48,23 +36,23 @@ export default function ProductsList() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>Liste des produits</h1>
-          <p style={styles.subtitle}>{products.length} produit{products.length > 1 ? 's' : ''} au total</p>
+          <h1 style={styles.title}>Liste des clients</h1>
+          <p style={styles.subtitle}>{clients.length} client{clients.length > 1 ? 's' : ''} au total</p>
         </div>
         <button 
-          onClick={() => navigate('/products/new')}
+          onClick={() => navigate('/clients/new')}
           style={styles.addButton}
         >
           <span style={styles.addIcon}>➕</span>
-          <span>Nouveau Produit</span>
+          <span>Nouveau Client</span>
         </button>
       </div>
 
-      {products.length === 0 ? (
+      {clients.length === 0 ? (
         <div style={styles.emptyState}>
-          <div style={styles.emptyIcon}>📦</div>
-          <h3 style={styles.emptyTitle}>Aucun produit trouvé</h3>
-          <p style={styles.emptyText}>Commencez par créer votre premier produit</p>
+          <div style={styles.emptyIcon}>👥</div>
+          <h3 style={styles.emptyTitle}>Aucun client trouvé</h3>
+          <p style={styles.emptyText}>Commencez par créer votre premier client</p>
         </div>
       ) : (
         <div style={styles.tableContainer}>
@@ -72,41 +60,43 @@ export default function ProductsList() {
             <thead>
               <tr style={styles.headerRow}>
                 <th style={styles.th}>Nom</th>
-                <th style={styles.th}>Prix HT</th>
-                <th style={styles.th}>Stock</th>
+                <th style={styles.th}>UserName</th>
+                <th style={styles.th}>Email</th>
+                <th style={styles.th}>Niveau Fidélité</th>
+                <th style={styles.th}>Total Commandes</th>
+                <th style={styles.th}>Total Dépensé</th>
                 <th style={{...styles.th, textAlign: 'center'}}>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              {products.map((p, index) => (
-                <tr key={p.id} style={{
+              {clients.map((c, index) => (
+                <tr key={c.id} style={{
                   ...styles.row,
                   backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb'
                 }}>
-                  <td style={styles.td}>{p.nom}</td>
-                  <td style={styles.td}>{p.prixUnitaire} DH</td>
-                  <td style={{
-                    ...styles.td,
-                    ...styles.stockCell,
-                    color: p.stockDisponible > 10 ? '#059669' : p.stockDisponible > 0 ? '#d97706' : '#dc2626'
-                  }}>
-                    {p.stockDisponible}
+                  <td style={styles.td}>{c.nom}</td>
+                  <td style={styles.td}>{c.username}</td>
+                  <td style={styles.td}>{c.email}</td>
+                  <td style={styles.td}>
+                    <span style={{
+                      ...styles.badge,
+                      backgroundColor: c.niveauFidelite === 'GOLD' ? '#fbbf24' : 
+                                     c.niveauFidelite === 'SILVER' ? '#9ca3af' : 
+                                     c.niveauFidelite === 'BRONZE' ? '#cd7f32' : '#3b82f6'
+                    }}>
+                      {c.niveauFidelite || 'STANDARD'}
+                    </span>
                   </td>
+                  <td style={styles.td}>{c.totalOrders || 0}</td>
+                  <td style={styles.td}>{c.totalSpent ? `${parseFloat(c.totalSpent).toFixed(2)} DH` : '0.00 DH'}</td>
                   <td style={{...styles.td, textAlign: 'center'}}>
                     <button 
-                      onClick={() => navigate(`/products/${p.id}/edit`)}
+                      onClick={() => navigate(`/clients/${c.id}/edit`)}
                       style={styles.editButton}
                       title="Modifier"
                     >
                       ✏️ Modifier
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(p.id, p.nom)}
-                      style={styles.deleteButton}
-                      title="Supprimer"
-                    >
-                      🗑️ Supprimer
                     </button>
                   </td>
                 </tr>
@@ -178,9 +168,6 @@ const styles = {
     fontSize: '0.95rem',
     color: '#111827',
   },
-  stockCell: {
-    fontWeight: '600',
-  },
   loadingContainer: {
     display: 'flex',
     flexDirection: 'column',
@@ -213,17 +200,6 @@ const styles = {
     transition: 'all 0.2s ease',
     marginRight: '0.5rem',
   },
-  deleteButton: {
-    padding: '0.5rem 1rem',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#ffffff',
-    backgroundColor: '#ef4444',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
   emptyState: {
     backgroundColor: '#ffffff',
     borderRadius: '8px',
@@ -245,6 +221,16 @@ const styles = {
     fontSize: '1rem',
     color: '#6b7280',
     margin: 0,
+  },
+  badge: {
+    display: 'inline-block',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '12px',
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    color: '#ffffff',
+    textTransform: 'uppercase',
+    letterSpacing: '0.025em',
   },
   addButton: {
     padding: '0.75rem 1.5rem',

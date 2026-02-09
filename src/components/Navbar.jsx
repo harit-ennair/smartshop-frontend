@@ -8,13 +8,14 @@ export default function Navbar() {
   };
 
   return (
-    <nav style={styles.nav}>
-      <div style={styles.container}>
-        <div style={styles.brand}>
-          <h2 style={styles.brandText}>SmartShop</h2>
-        </div>
+    <aside style={styles.sidebar}>
+      <div style={styles.brand}>
+        <h2 style={styles.brandText}>🛒 SmartShop</h2>
+      </div>
 
-        <div style={styles.links}>
+      <nav style={styles.nav}>
+        <div style={styles.linksGroup}>
+          <h3 style={styles.groupTitle}>Menu Principal</h3>
           <Link 
             to="/products" 
             style={{
@@ -22,41 +23,75 @@ export default function Navbar() {
               ...(isActive('/products') ? styles.linkActive : {})
             }}
           >
-            📦 Produits
+            <span style={styles.icon}>📦</span>
+            <span>Produits</span>
           </Link>
 
           <Link 
-            to="/products/new"
-            style={styles.buttonLink}
+            to="/clients" 
+            style={{
+              ...styles.link,
+              ...(isActive('/clients') ? styles.linkActive : {})
+            }}
           >
-            ➕ Nouveau Produit
+            <span style={styles.icon}>👥</span>
+            <span>Clients</span>
+          </Link>
+
+          <Link 
+            to="/commandes" 
+            style={{
+              ...styles.link,
+              ...(isActive('/commandes') ? styles.linkActive : {})
+            }}
+          >
+            <span style={styles.icon}>📋</span>
+            <span>Commandes</span>
+          </Link>
+
+          <Link 
+            to="/codepromos" 
+            style={{
+              ...styles.link,
+              ...(isActive('/codepromos') ? styles.linkActive : {})
+            }}
+          >
+            <span style={styles.icon}>🎟️</span>
+            <span>Codes Promo</span>
+          </Link>
+
+          <Link 
+            to="/paiements" 
+            style={{
+              ...styles.link,
+              ...(isActive('/paiements') ? styles.linkActive : {})
+            }}
+          >
+            <span style={styles.icon}>💳</span>
+            <span>Paiements</span>
           </Link>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </aside>
   );
 }
 
 const styles = {
-  nav: {
+  sidebar: {
     backgroundColor: '#1f2937',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    position: 'sticky',
+    width: '260px',
+    minHeight: '100vh',
+    position: 'fixed',
+    left: 0,
     top: 0,
+    boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
+    display: 'flex',
+    flexDirection: 'column',
     zIndex: 1000,
   },
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 2rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: '64px',
-  },
   brand: {
-    display: 'flex',
-    alignItems: 'center',
+    padding: '1.5rem 1.25rem',
+    borderBottom: '1px solid #374151',
   },
   brandText: {
     fontSize: '1.5rem',
@@ -65,39 +100,49 @@ const styles = {
     margin: 0,
     letterSpacing: '-0.02em',
   },
-  links: {
+  nav: {
+    padding: '1rem 0',
+    flex: 1,
     display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  },
+  linksGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.25rem',
+    padding: '0 1rem',
+  },
+  groupTitle: {
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    color: '#9ca3af',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    margin: '0 0 0.5rem 0',
+    padding: '0 0.5rem',
   },
   link: {
     color: '#d1d5db',
     textDecoration: 'none',
     fontSize: '0.95rem',
     fontWeight: '500',
-    padding: '0.5rem 1rem',
-    borderRadius: '6px',
+    padding: '0.75rem 1rem',
+    borderRadius: '8px',
     transition: 'all 0.2s ease',
-    display: 'inline-flex',
+    display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
+    gap: '0.75rem',
   },
   linkActive: {
     backgroundColor: '#374151',
     color: '#ffffff',
   },
-  buttonLink: {
-    color: '#ffffff',
-    backgroundColor: '#3b82f6',
-    textDecoration: 'none',
-    fontSize: '0.95rem',
-    fontWeight: '600',
-    padding: '0.6rem 1.2rem',
-    borderRadius: '6px',
-    transition: 'all 0.2s ease',
-    display: 'inline-flex',
+  icon: {
+    fontSize: '1.25rem',
+    display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    justifyContent: 'center',
+    width: '24px',
   },
 };

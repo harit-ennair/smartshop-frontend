@@ -1,37 +1,47 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProducts, deleteProduct } from "../../services/products";
+import { getCodePromos, deleteCodePromo, changeCodePromoStatus } from "../../services/codepromos";
 
-export default function ProductsList() {
+export default function CodePromosList() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
+  const [codePromos, setCodePromos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProducts();
+    loadCodePromos();
   }, []);
 
-  async function loadProducts() {
+  async function loadCodePromos() {
     try {
       setLoading(true);
-      const response = await getProducts();
-      setProducts(response.data.data || response.data); 
+      const response = await getCodePromos();
+      setCodePromos(response.data || []); 
     } catch (error) {
-      console.error("Erreur chargement produits:", error);
+      console.error("Erreur chargement codes promo:", error);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDelete(id, nom) {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${nom}" ?`)) {
+  async function handleDelete(id, code) {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${code}" ?`)) {
       try {
-        await deleteProduct(id);
-        loadProducts();
+        await deleteCodePromo(id);
+        loadCodePromos();
       } catch (error) {
-        console.error("Erreur suppression produit:", error);
-        alert("Erreur lors de la suppression du produit");
+        console.error("Erreur suppression code promo:", error);
+        alert("Erreur lors de la suppression du code promo");
       }
+    }
+  }
+
+  async function handleToggleStatus(id, currentStatus) {
+    try {
+      await changeCodePromoStatus(id, !currentStatus);
+      loadCodePromos();
+    } catch (error) {
+      console.error("Erreur changement statut:", error);
+      alert("Erreur lors du changement de statut");
     }
   }
 
@@ -48,61 +58,70 @@ export default function ProductsList() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>Liste des produits</h1>
-          <p style={styles.subtitle}>{products.length} produit{products.length > 1 ? 's' : ''} au total</p>
+          <h1 style={styles.title}>Liste des codes promo</h1>
+          <p style={styles.subtitle}>{codePromos.length} code{codePromos.length > 1 ? 's' : ''} promo au total</p>
         </div>
         <button 
-          onClick={() => navigate('/products/new')}
+          onClick={() => navigate('/codepromos/new')}
           style={styles.addButton}
         >
           <span style={styles.addIcon}>➕</span>
-          <span>Nouveau Produit</span>
+          <span>Nouveau Code Promo</span>
         </button>
       </div>
 
-      {products.length === 0 ? (
+      {codePromos.length === 0 ? (
         <div style={styles.emptyState}>
-          <div style={styles.emptyIcon}>📦</div>
-          <h3 style={styles.emptyTitle}>Aucun produit trouvé</h3>
-          <p style={styles.emptyText}>Commencez par créer votre premier produit</p>
+          <div style={styles.emptyIcon}>🎟️</div>
+          <h3 style={styles.emptyTitle}>Aucun code promo trouvé</h3>
+          <p style={styles.emptyText}>Commencez par créer votre premier code promo</p>
         </div>
       ) : (
         <div style={styles.tableContainer}>
           <table style={styles.table}>
             <thead>
               <tr style={styles.headerRow}>
-                <th style={styles.th}>Nom</th>
-                <th style={styles.th}>Prix HT</th>
-                <th style={styles.th}>Stock</th>
+                <th style={styles.th}>Code</th>
+                <th style={styles.th}>Remise</th>
+                <th style={styles.th}>Statut</th>
                 <th style={{...styles.th, textAlign: 'center'}}>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              {products.map((p, index) => (
-                <tr key={p.id} style={{
+              {codePromos.map((cp, index) => (
+                <tr key={cp.id} style={{
                   ...styles.row,
                   backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb'
                 }}>
-                  <td style={styles.td}>{p.nom}</td>
-                  <td style={styles.td}>{p.prixUnitaire} DH</td>
-                  <td style={{
-                    ...styles.td,
-                    ...styles.stockCell,
-                    color: p.stockDisponible > 10 ? '#059669' : p.stockDisponible > 0 ? '#d97706' : '#dc2626'
-                  }}>
-                    {p.stockDisponible}
+                  <td style={styles.td}>
+                    <span style={styles.codeText}>{cp.code}</span>
+                  </td>
+                  <td style={styles.td}>
+                    <span style={styles.remiseText}>{(cp.remise * 100).toFixed(0)}%</span>
+                  </td>
+                  <td style={styles.td}>
+                    <button
+                      onClick={() => handleToggleStatus(cp.id, cp.actif)}
+                      style={{
+                        ...styles.statusBadge,
+                        backgroundColor: cp.actif ? '#d1fae5' : '#fee2e2',
+                        color: cp.actif ? '#065f46' : '#991b1b',
+                      }}
+                    >
+                      {cp.actif ? '✓ Actif' : '✕ Inactif'}
+                    </button>
                   </td>
                   <td style={{...styles.td, textAlign: 'center'}}>
                     <button 
-                      onClick={() => navigate(`/products/${p.id}/edit`)}
+                      onClick={() => navigate(`/codepromos/${cp.id}/edit`)}
                       style={styles.editButton}
                       title="Modifier"
                     >
                       ✏️ Modifier
                     </button>
                     <button 
-                      onClick={() => handleDelete(p.id, p.nom)}
+                      onClick={() => handleDelete(cp.id, cp.code)}
                       style={styles.deleteButton}
                       title="Supprimer"
                     >
@@ -171,15 +190,33 @@ const styles = {
   row: {
     borderBottom: '1px solid #e5e7eb',
     transition: 'background-color 0.2s ease',
-    cursor: 'pointer',
   },
   td: {
     padding: '1rem',
     fontSize: '0.95rem',
     color: '#111827',
   },
-  stockCell: {
+  codeText: {
+    fontFamily: 'monospace',
+    fontSize: '1rem',
     fontWeight: '600',
+    backgroundColor: '#f3f4f6',
+    padding: '0.25rem 0.5rem',
+    borderRadius: '4px',
+  },
+  remiseText: {
+    fontWeight: '700',
+    fontSize: '1.1rem',
+    color: '#059669',
+  },
+  statusBadge: {
+    padding: '0.375rem 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    border: 'none',
+    borderRadius: '9999px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   loadingContainer: {
     display: 'flex',
